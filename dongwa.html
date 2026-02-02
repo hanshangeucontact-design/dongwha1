@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>🌟 마법 동화책 (10 페이지) 🌟</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap');
+
+      :root {
+        --book-width: 450px; /* 책 너비 조정 */
+        --book-height: 600px; /* 책 높이 조정 */
+        --speed: 1s; /* 페이지 넘어가는 속도 */
+      }
+
+      body {
+        background-color: #f0e6d2;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        perspective: 2500px; /* 입체감 강화 */
+        font-family: 'Nanum Pen Script', cursive;
+        overflow: hidden; /* 스크롤 방지 */
+      }
+
+      .book {
+        width: var(--book-width);
+        height: var(--book-height);
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.8s;
+        cursor: grab; /* 마우스 커서 변경 */
+      }
+
+      .book:active {
+        cursor: grabbing;
+      }
+
+      /* 페이지 공통 스타일 */
+      .page {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform-origin: left;
+        transform-style: preserve-3d;
+        transition: transform var(--speed) cubic-bezier(0.645, 0.045, 0.355, 1);
+        cursor: pointer;
+        user-select: none;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 페이지 기본 그림자 */
+        border-radius: 0 10px 10px 0;
+      }
+
+      /* 앞면/뒷면 설정 */
+      .front,
+      .back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        padding: 20px;
+        box-sizing: border-box;
+        backface-visibility: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        text-align: center;
+        background-color: #ffffff; /* 기본 페이지 배경 */
+        border-radius: inherit;
+      }
+
+      .back {
+        transform: rotateY(180deg);
+        background-color: #f9f9f9;
+      }
+
+      .page-content {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        font-size: 1.4rem;
+        line-height: 1.6;
+        color: #333;
+      }
+
+      .page-image {
+        max-width: 90%;
+        max-height: 60%;
+        object-fit: contain;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h2 {
+        font-size: 2.5rem;
+        color: #4a2f20;
+        margin-bottom: 10px;
+      }
+      p {
+        margin: 5px 0;
+      }
+
+      /* 페이지가 넘어갔을 때의 상태 */
+      .flipped {
+        transform: rotateY(-180deg);
+      }
+
+      /* 책장 넘길 때 안쪽 그림자(입체감) */
+      .page.flipped .front {
+        box-shadow: inset -15px 0 40px rgba(0, 0, 0, 0.25);
+      }
+      .page.flipped .back {
+        box-shadow: inset 15px 0 40px rgba(0, 0, 0, 0.25);
+      }
+
+      /* 책등 효과 */
+      .book::before {
+        content: '';
+        position: absolute;
+        left: -10px; /* 책등 두께 */
+        width: 20px;
+        height: 100%;
+        background: linear-gradient(to right, #6d4c41, #3e2723);
+        transform: rotateY(-90deg) translateZ(10px);
+        transform-origin: right;
+        box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+        border-radius: 10px 0 0 10px;
+      }
+
+      /* 페이지별 z-index 초기 설정 (가장 뒤 페이지가 z-index가 가장 낮도록) */
+      .page:nth-child(1) {
+        z-index: 10;
+      }
+      .page:nth-child(2) {
+        z-index: 9;
+      }
+      .page:nth-child(3) {
+        z-index: 8;
+      }
+      .page:nth-child(4) {
+        z-index: 7;
+      }
+      .page:nth-child(5) {
+        z-index: 6;
+      }
+      .page:nth-child(6) {
+        z-index: 5;
+      }
+      .page:nth-child(7) {
+        z-index: 4;
+      }
+      .page:nth-child(8) {
+        z-index: 3;
+      }
+      .page:nth-child(9) {
+        z-index: 2;
+      }
+      .page:nth-child(10) {
+        z-index: 1;
+      } /* 마지막 페이지는 뒷표지 역할 */
+
+      /* 앞표지 스타일 */
+      #cover-front {
+        background: linear-gradient(to bottom right, #ffcc80, #ffab40);
+        box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.3);
+        border-radius: 0 15px 15px 0;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        color: #5d4037;
+        text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.7);
+      }
+      #cover-front h1 {
+        font-size: 3.5rem;
+        margin-bottom: 20px;
+        letter-spacing: 2px;
+      }
+      #cover-front p {
+        font-size: 1.8rem;
+        font-weight: bold;
+      }
+      .cover-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: -1;
+        opacity: 0.8;
+      }
+
+      /* 뒷표지 스타일 */
+      #cover-back {
+        background: linear-gradient(to bottom left, #ffcc80, #ffab40);
+        box-shadow: -5px 5px 20px rgba(0, 0, 0, 0.3);
+        border-radius: 15px 0 0 15px;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        color: #5d4037;
+        text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.7);
+      }
+      #cover-back p {
+        font-size: 1.5rem;
+        margin: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="book" id="storybook">
+      <div class="page" id="cover-front" onclick="flipPage(this)">
+        <img src="cover-front.webp" alt="동화책 앞표지" class="cover-image" />
+        <h1>🌟 마법의 숲 모험 🌟</h1>
+        <p>글/그림: 구세주님</p>
+      </div>
+
+      <div class="page" onclick="flipPage(this)">
+        <div class="front">
+          <div class="page-content">
+            <h2>옛날 옛적에...</h2>
+            <img
+              src="fairy_forest.webp"
+              alt="깊은 숲 속 요정의 집"
+              class="page-image"
+            />
+            <p>깊고 깊은 숲 속, 햇살 가득한 작은 오두막에</p>
+            <p>꼬마 요정 '반짝이'가 살고 있었어요.</p>
+          </div>
+        </div>
+        <div class="back">
+          <div class="page-content">
+            <h2>숲 속 친구들</h2>
+            <img
+              src="friendly_animals.webp"
+              alt="숲 속 동물 친구들"
+              class="page-image"
+            />
+            <p>반짝이는 다람쥐, 토끼, 부엉이들과 함께</p>
+            <p>매일매일 즐거운 시간을 보냈답니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" onclick="flipPage(this)">
+        <div class="front">
+          <div class="page-content">
+            <h2>신비한 지도</h2>
+            <img
+              src="treasure_map.webp"
+              alt="오래된 보물지도"
+              class="page-image"
+            />
+            <p>어느 날, 낡은 나무 상자에서</p>
+            <p>빛나는 보물지도를 발견했어요!</p>
+          </div>
+        </div>
+        <div class="back">
+          <div class="page-content">
+            <h2>모험의 시작</h2>
+            <img
+              src="traveling_fairy.webp"
+              alt="요정이 모험을 떠나는 모습"
+              class="page-image"
+            />
+            <p>반짝이는 용기를 내어</p>
+            <p>미지의 세계로 모험을 떠나기로 했어요.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" onclick="flipPage(this)">
+        <div class="front">
+          <div class="page-content">
+            <h2>반짝이는 폭포</h2>
+            <img
+              src="sparkling_waterfall.webp"
+              alt="아름다운 빛나는 폭포"
+              class="page-image"
+            />
+            <p>첫 번째 도착지는 무지개빛 폭포였어요.</p>
+            <p>물이 보석처럼 반짝였죠.</p>
+          </div>
+        </div>
+        <div class="back">
+          <div class="page-content">
+            <h2>수수께끼 다리</h2>
+            <img
+              src="magical_bridge.webp"
+              alt="마법의 다리를 건너는 요정"
+              class="page-image"
+            />
+            <p>폭포를 지나니 신비로운 돌다리가 나타났어요.</p>
+            <p>다리를 건너려면 수수께끼를 풀어야 했죠.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" onclick="flipPage(this)">
+        <div class="front">
+          <div class="page-content">
+            <h2>길 잃은 아기새</h2>
+            <img
+              src="lost_bird.webp"
+              alt="길 잃은 아기새를 돕는 요정"
+              class="page-image"
+            />
+            <p>다리를 건너자 길을 잃은 아기새를 만났어요.</p>
+            <p>반짝이는 아기새를 도와 엄마 새를 찾아주었어요.</p>
+          </div>
+        </div>
+        <div class="back">
+          <div class="page-content">
+            <h2>고마운 선물</h2>
+            <img
+              src="glowing_flower.webp"
+              alt="아기새가 준 빛나는 꽃"
+              class="page-image"
+            />
+            <p>아기새는 고마움의 표시로</p>
+            <p>밤에 빛나는 특별한 꽃을 선물했어요.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" onclick="flipPage(this)">
+        <div class="front">
+          <div class="page-content">
+            <h2>어둠의 동굴</h2>
+            <img
+              src="dark_cave.webp"
+              alt="어둡고 신비로운 동굴 입구"
+              class="page-image"
+            />
+            <p>지도는 반짝이를 어둡고 깊은 동굴로 이끌었어요.</p>
+            <p>선물 받은 꽃이 길을 밝혀주었죠.</p>
+          </div>
+        </div>
+        <div class="back">
+          <div class="page-content">
+            <h2>잠자는 용</h2>
+            <img
+              src="sleeping_dragon.webp"
+              alt="동굴 속 잠자는 용"
+              class="page-image"
+            />
+            <p>동굴 깊은 곳에는 거대한 용이 잠들어 있었어요.</p>
+            <p>반짝이는 조용히 보물상자를 찾아 나섰어요.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" onclick="flipPage(this)">
+        <div class="front">
+          <div class="page-content">
+            <h2>빛나는 보물상자</h2>
+            <img
+              src="treasure_chest.webp"
+              alt="빛나는 보물상자"
+              class="page-image"
+            />
+            <p>용의 발치에 빛나는 보물상자가 있었어요!</p>
+            <p>조심스럽게 상자를 열었죠.</p>
+          </div>
+        </div>
+        <div class="back">
+          <div class="page-content">
+            <h2>용의 선물</h2>
+            <img
+              src="dragon_gift.webp"
+              alt="용이 요정에게 마법 보석을 주는 모습"
+              class="page-image"
+            />
+            <p>상자 안에는 아름다운 마법 보석이 있었고,</p>
+            <p>용은 반짝이의 용기를 칭찬하며 보석을 선물했어요.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" onclick="flipPage(this)">
+        <div class="front">
+          <div class="page-content">
+            <h2>집으로 돌아가는 길</h2>
+            <img
+              src="fairy_flying_home.webp"
+              alt="보석을 들고 집으로 돌아가는 요정"
+              class="page-image"
+            />
+            <p>마법 보석과 함께 반짝이는</p>
+            <p>숲 속 친구들에게 돌아왔어요.</p>
+          </div>
+        </div>
+        <div class="back">
+          <div class="page-content">
+            <h2>새로운 마법</h2>
+            <img
+              src="glowing_forest.webp"
+              alt="마법 보석으로 빛나는 숲"
+              class="page-image"
+            />
+            <p>보석의 힘으로 숲은 더욱 아름다워졌고,</p>
+            <p>모든 친구들이 행복하게 살았답니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" onclick="flipPage(this)">
+        <div class="front">
+          <div class="page-content">
+            <h2>모험의 끝</h2>
+            <img
+              src="fairy_and_friends_celebrating.webp"
+              alt="요정과 동물 친구들이 함께 기뻐하는 모습"
+              class="page-image"
+            />
+            <p>반짝이의 모험은 끝났지만,</p>
+            <p>새로운 이야기는 언제든 시작될 수 있어요.</p>
+          </div>
+        </div>
+        <div class="back">
+          <div class="page-content">
+            <h2>당신의 모험은?</h2>
+            <p>이 책을 읽는 당신은 어떤 모험을 하고 싶나요?</p>
+            <p>상상력을 펼쳐보세요!</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="cover-back">
+        <img src="cover-back.webp" alt="동화책 뒷표지" class="cover-image" />
+        <h2>이야기 끝 📖</h2>
+        <p>또 다른 모험에서 만나요!</p>
+      </div>
+    </div>
+
+    <script>
+      let currentPage = 0;
+      const pages = document.querySelectorAll('.page');
+      const totalPages = pages.length;
+
+      function flipPage(pageElement) {
+        const pageIndex = Array.from(pages).indexOf(pageElement);
+
+        // 앞표지를 클릭했는데 이미 넘어갔으면 다음 페이지로
+        if (
+          pageElement.id === 'cover-front' &&
+          pageElement.classList.contains('flipped')
+        ) {
+          if (currentPage < totalPages - 1) {
+            // 마지막 페이지가 아니라면
+            flipPage(pages[currentPage + 1]); // 다음 페이지를 넘김
+          }
+          return;
+        }
+
+        // 뒷표지는 넘어가지 않도록 방지
+        if (pageElement.id === 'cover-back') {
+          return;
+        }
+
+        pageElement.classList.toggle('flipped');
+
+        if (pageElement.classList.contains('flipped')) {
+          // 페이지가 넘어가면 z-index를 최하위로 (뒤로 숨겨짐)
+          setTimeout(
+            () => {
+              pageElement.style.zIndex = 0;
+            },
+            (parseFloat(getComputedStyle(pageElement).transitionDuration) *
+              1000) /
+              2,
+          ); // 애니메이션 중간쯤에 z-index 변경
+          currentPage = pageIndex + 1;
+        } else {
+          // 페이지가 다시 돌아오면 원래 z-index로 (앞으로 나옴)
+          setTimeout(
+            () => {
+              pageElement.style.zIndex = totalPages - pageIndex; // 원래 z-index 값으로 복구
+            },
+            (parseFloat(getComputedStyle(pageElement).transitionDuration) *
+              1000) /
+              2,
+          );
+          currentPage = pageIndex;
+        }
+      }
+
+      // 초기 z-index 설정 함수 (새로고침 시 적용)
+      function setInitialZIndexes() {
+        for (let i = 0; i < totalPages; i++) {
+          pages[i].style.zIndex = totalPages - i;
+        }
+      }
+      setInitialZIndexes(); // 페이지 로드 시 z-index 설정
+    </script>
+  </body>
+</html>
